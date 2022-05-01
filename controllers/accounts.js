@@ -161,5 +161,63 @@ router.post('/login', async(request,response)=>{
     })
 });
 
+//forgetPassword
+router.post('/forgetPassword',async(request,response)=>{
+
+    const email = request.body.email;
+    User.findOne({email: email})
+    .then(async account=>{
+
+        if(account){
+            const passcode= generateRandomIntegerInRange(1000,9999);
+            account.passcode = passcode;
+            account.save()
+            .then( account_updated=>{
+                return response.status(200).json({
+                    message: account_updated.passcode
+                });
+            });
+        }else{
+            return response.status(200).json({
+                message: "The user not found."
+            })
+        }
+    })
+    .catch(err=>{
+        return response.status(500).json({
+            message:err
+        });
+    });
+});
+
+//UpdatePassword
+router.post('/UpdatePassword', async(request,response)=>{
+    //Get datlis newpass and email
+    const {email,newpassword} = request.body;
+    //Check if user exist
+    User.findOne({email: email})
+    .then(async account=>{
+
+        if(account){
+            const formetted_password= await bcryptjs.hash(newpassword,10); 
+            account.password = formetted_password;         //Save formetted password in db
+            account.save()
+            .then(async account_updated=>{
+                return response.status(200).json({   
+                    message:account_updated       //Response
+                })
+            })
+        }else{
+            return response.status(200).json({
+                message: 'User not found.'
+            })
+        }
+    })
+    .catch(err=>{
+        return response.status(500).json({
+            message: err
+        })
+    })
+})
 
 module.exports = router;
