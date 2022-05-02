@@ -3,12 +3,13 @@ const mongoose = require('mongoose');
 const router=express.Router();
 const bcryptjs= require('bcryptjs');
 const jwt= require('jsonwebtoken');
+const isAuth = require('./isAuth');
 
 //Models
 const User =require('../models/user'); 
 
-
-router.get('/AllAccounts', async(request,response) => {       //getting list of accounts
+//getting list of accounts
+router.get('/AllAccounts', async(request,response) => {      
 
     try {
         const users = await User.find();
@@ -190,8 +191,8 @@ router.post('/forgetPassword',async(request,response)=>{
     });
 });
 
-//UpdatePassword
-router.post('/UpdatePassword', async(request,response)=>{
+//updatePassword
+router.post('/updatePassword', async(request,response)=>{
     //Get datlis newpass and email
     const {email,newpassword} = request.body;
     //Check if user exist
@@ -218,6 +219,13 @@ router.post('/UpdatePassword', async(request,response)=>{
             message: err
         })
     })
+});
+
+router.get('/getUserData', isAuth, async(request,response)=>{
+    return response.status(200).json({
+        message: `Hello ${request.account.firstName} ${request.account.lastName}`
+    })
+    
 })
 
 module.exports = router;
