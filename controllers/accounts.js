@@ -7,6 +7,7 @@ const isAuth = require('./isAuth');
 
 //Models
 const User =require('../models/user'); 
+const Store = require('../models/store');
 
 //getting list of accounts
 router.get('/AllAccounts', async(request,response) => {      
@@ -222,10 +223,19 @@ router.post('/updatePassword', async(request,response)=>{
 });
 
 router.get('/getUserData', isAuth, async(request,response)=>{
+    const id= request.account._id;
+    //find the store with this associated id account.
+    //populate(find the user associated this store by connect velue in schame store)
+    const store = await Store.findOne({associateId:id}).populate('associateId');
     return response.status(200).json({
-        message: `Hello ${request.account.firstName} ${request.account.lastName}`
+        message: store
     })
     
 })
+
+
+
+
+
 
 module.exports = router;

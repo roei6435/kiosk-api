@@ -10,7 +10,7 @@ const storeSchema = new Schema({
     isTakeway:Boolean,
     isDelivery:Boolean,
     storeDescription: String,
-    Subs:[
+    subs:[
         {
             associateId:{type: mongoose.Schema.Types.ObjectId ,ref:'User'},
         }
