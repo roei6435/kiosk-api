@@ -222,6 +222,54 @@ router.post('/updatePassword', async(request,response)=>{
     })
 });
 
+//updateUserDetalis
+router.put('/UpdateUserDetails', isAuth, async(request,response)=>{
+
+    const account=request.account;
+    const{
+        firstName,
+        lastName,
+        email,
+        mobile,
+
+    }= request.body;
+    if(email!=account.email){
+        User.findOne({email: email})
+        .then(account=>{
+            if(account){
+                return response.status(200).json({
+                    message:'The email is already in system'
+                })               
+            }
+        })
+    }
+    if(mobile!=account.mobile){
+        User.findOne({mobile: mobile})
+        .then(account=>{
+            if(account){
+                return response.status(200).json({
+                    message:'The mobile is already in system'
+                })               
+            }
+        })
+    }
+    account.firstName = firstName;
+    account.lastName = lastName;
+    account.email =email;
+    account.mobile = mobile;
+    account.save()
+    .then(account_updated=>{
+        return response.status(200).json({
+            message:account_updated
+        })
+    })
+    .catch(err => {
+        return response.status(500).json({
+            message: err
+        })
+    })
+})
+
 router.get('/getUserData', isAuth, async(request,response)=>{
     const id= request.account._id;
     //find the store with this associated id account.

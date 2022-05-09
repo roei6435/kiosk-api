@@ -8,8 +8,10 @@ app.use(bodyParser.json());
 
 const accountsRoute = require('./controllers/accounts');
 const storeRoute= require('./controllers/store');
+const prooductRoute = require('./controllers/product');
 app.use('/api/accounts', accountsRoute);    //application using this route(name,how is the route?)
 app.use('/api/store', storeRoute); 
+app.use('/api/product',prooductRoute);
 
 
 const url= 'mongodb+srv://Roei6435:6435@cluster0.whqlb.mongodb.net/MyKiosk_db?retryWrites=true&w=majority';

@@ -6,58 +6,6 @@ const isAuth = require('./isAuth');
 const User = require('../models/user');
 const Store = require('../models/store');
 
-router.put('/updateStore', isAuth, async(request,response)=>{
-
-    const associateId = request.account._id;
-    const store = await Store.findOne({associateId: associateId});
-    const {
-        storeName,
-        isTakeway,
-        isDelivery,
-        storeDescription,
-        email,
-        mobile,
-        phone,
-        city,address,latitude,longtitude,
-        workingHours,
-        logo,
-    }= request.body;
-
-
-    User.findOne({email: email})     //אם קיים יוסר עם אימייל כזה
-    .then(account=>{
-        if(account.email!=email) {     //אם זה לא היוסר שלי
-            return response.status(200).json({
-                message: 'This email exist in system'
-            })
-        }else{
-            store.storeName=storeName;
-            store.isTakeway=isTakeway;
-            store.isDelivery=isDelivery;
-            store.storeDescription=storeDescription;
-            store.contactInfo.email=email;
-            store.contactInfo.mobile=mobile;
-            store.contactInfo.phone=phone;
-            store.contactInfo.city=city;
-            store.contactInfo.address=address;
-            store.contactInfo.latitude=latitude;
-            store.contactInfo.longtitude=longtitude;
-            store.workingHours=workingHours;
-            store.logo=logo;
-            store.save().then(store_updated=>{
-                return response.status(200).json({
-                    storeUpdated: store_updated
-                })
-            })
-        }
-    })
-    .catch(err=>{
-        return response.status(500).json({
-            message: err
-        })
-    })
-})
-
 router.post('/createStore', isAuth, async(request,response)=>{
    
     //accountId
@@ -122,8 +70,59 @@ router.post('/createStore', isAuth, async(request,response)=>{
     }
 })
 
+router.put('/updateStore', isAuth, async(request,response)=>{
 
+    const associateId = request.account._id;
+    const store = await Store.findOne({associateId: associateId});
+    const {
+        storeName,
+        isTakeway,
+        isDelivery,
+        storeDescription,
+        email,
+        mobile,
+        phone,
+        city,address,latitude,longtitude,
+        workingHours,
+        logo,
+    }= request.body;
 
+    User.findOne({email: email})
+    .then(account=>{
+        if(account){
+            return response.status(200).json({
+                message:'The email exist in system'
+            })
+        }else{
+            store.storeName=storeName;
+            store.isTakeway=isTakeway;
+            store.isDelivery=isDelivery;
+            store.storeDescription=storeDescription;
+            store.contactInfo = {
+                email:email,
+                mobile:mobile,
+                phone:phone,
+                city:city,address:address,
+                latitude:latitude,longtitude:longtitude,
+            },
+            store.contactInfo.longtitude=longtitude;
+            store.workingHours=workingHours;
+            store.logo=logo;
+            store.save().then(store_update=>{
+                return response.status(200).json({
+                    message:'store updated',
+                    store:store_update
+                })
+            })
+        }
+    })
+    .catch(error=>{
+        return response.status(500).json({
+            message: error
+        })
+    })
+          
+}
 
-
+)
 module.exports = router;
