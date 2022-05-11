@@ -7,6 +7,7 @@ const User = require('../models/user');
 const Store = require('../models/store');
 const Category = require('../models/category');
 const Product= require('../models/product');
+const store = require('../models/store');
 
 router.get('/getAllCategories',isAuth, async(request,response)=>{ 
 
@@ -25,6 +26,23 @@ router.get('/getAllCategories',isAuth, async(request,response)=>{
             message: err
         })
     })
+})
+
+router.get('/getCategory/:categoryId',isAuth, async(request,response)=>{
+
+   const cId=request.params.categoryId;
+   Category.findById(cId)
+   .then(category=>{
+       return response.status(200).json({
+           message: category
+       })
+   })
+   .catch(err=>{
+       return response.status(500).json({
+           message: err
+       })
+   })
+
 })
 
 router.post('/addCategory',isAuth, async(request,response)=>{
@@ -67,6 +85,7 @@ router.post('/addCategory',isAuth, async(request,response)=>{
 
 
 })
+
 router.put('/updateCategory/:categoryId',isAuth, async(request,response)=>{   //route with variable
 
     const {categoryName,categoryImage,priority }= request.body;
@@ -99,7 +118,6 @@ router.put('/updateCategory/:categoryId',isAuth, async(request,response)=>{   //
     })
 })
 
-
 router.delete('/deleteCategory/:categoryId',isAuth, async(request,response)=>{
 
      const cId=request.params.categoryId;
@@ -122,11 +140,129 @@ router.delete('/deleteCategory/:categoryId',isAuth, async(request,response)=>{
 
 })
 
+router.post('/addProduct/:categoryId',isAuth, async(request,response)=>{
+
+    const store = await Store.findOne({associateId:request.account._id});
+    const cId = request.params.categoryId;
+    const productId=mongoose.Types.ObjectId();
+    const{
+        productName,price,unitInStock,desclimer,isAgeLimitation,imageSource
+     }=request.body;
+     const _product=new Product({
+         _id:productId,
+         storeId:store._id,
+         categoryId:cId,
+         productName:productName,
+         productImages:[
+             { imageSource:imageSource}
+         ],
+         price:price
+         ,unitInStock:unitInStock
+         ,desclimer:desclimer
+         ,isAgeLimitation:isAgeLimitation
+     })
+     return _product.save()
+     .then(new_product=>{
+        return response.status(200).json({
+            message:new_product
+        })
+     })
+     .catch(err=>{  
+        return response.status(500).json({
+            message:err
+        })
+     })
 
 
-router.post('/addProduct',isAuth, async(request,response)=>{})
-router.put('/updateProduct',isAuth, async(request,response)=>{})
-router.delete('/deleteProduct',isAuth, async(request,response)=>{})
-router.get('/getAllProducts',isAuth, async(request,response)=>{})
+})
+
+router.put('/updateProduct/:categoryId/:productId',isAuth, async(request,response)=>{
+
+    const cId= request.params.categoryId;
+    const pId=request.params.productId;
+    //const product= await Product.findOne({categoryId:cId, _id:pId});
+    const{
+        productName,price,unitInStock,desclimer,isAgeLimitation,imageSource,discount
+     }=request.body;
+     Product.findById(pId)
+     .then(product=>{
+        if(product){
+            if(imageSource!=''){
+                product.productImages.push({imageSource:imageSource})
+            }
+            product.productName=productName;
+            product.price=price;
+            product.unitInStock=unitInStock;
+            product.desclimer=desclimer;
+            product.isAgeLimitation=isAgeLimitation;
+            product.discount=discount;
+            return product.save()
+            .then(product_updated=>{
+                return response.status(200).json({
+                    message:product_updated
+                  })  
+            })
+            .catch(error=>{
+              return response.status(500).json({
+                message:error
+              })  
+            })
+
+        }else{
+            return response.status(200).json({
+                message:'Product not found.'
+            })
+        }
+     })
+     .catch(err=>{
+         return response.status(500).json({
+             message: err
+         })
+     })
+
+
+
+
+
+
+
+})
+
+router.delete('/deleteProduct/:categoryId/:productId',isAuth, async(request,response)=>{
+    const pId=request.params.productId;
+    const cId=request.params.categoryId;
+    Product.findOneAndDelete({categoryId:cId,_id:pId}) //double check
+    .then(product_deleted=>{
+        return response.status(200).json({
+            message: product_deleted
+        })
+    })
+    .catch(err=>{
+        return response.status(500).json({
+            message: err
+        })
+    })
+})
+
+router.get('/getAllProducts',isAuth, async(request,response)=>{
+
+    const accId=request.account._id;
+    const store = await Store.findOne({associateId:accId});
+    Product.find({storeId:store._id})
+    .then(products=>{
+        return response.status(200).json({
+            message: products
+        })
+    })
+    .catch(error=>{
+        return response.status(500).json({
+            message: error
+        })
+    });
+   
+
+
+
+})
 
 module.exports = router;
