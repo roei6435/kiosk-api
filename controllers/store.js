@@ -25,8 +25,6 @@ router.post('/createStore', isAuth, async(request,response)=>{
             storeDescription,
             isTakeway,
             isDelivery,
-            email,
-            mobile,
             phone,
             city,address,latitude,longtitude
         } = request.body; 
@@ -46,8 +44,8 @@ router.post('/createStore', isAuth, async(request,response)=>{
             storeDescription: storeDescription,
             subs:[],
             contactInfo:{
-            email: email,
-            mobile: mobile,
+            email: request.account.email,
+            mobile: request.account.mobile ,
             phone: phone,
             city: city,address:address,
             latitude: latitude,longtitude:longtitude
@@ -86,33 +84,42 @@ router.put('/updateStore', isAuth, async(request,response)=>{
         workingHours,
         logo,
     }= request.body;
-
+    
     User.findOne({email: email})
     .then(account=>{
-        if(account){
+        if(account &&request.account.email!=email){
             return response.status(200).json({
                 message:'The email exist in system'
             })
         }else{
-            store.storeName=storeName;
-            store.isTakeway=isTakeway;
-            store.isDelivery=isDelivery;
-            store.storeDescription=storeDescription;
-            store.contactInfo = {
-                email:email,
-                mobile:mobile,
-                phone:phone,
-                city:city,address:address,
-                latitude:latitude,longtitude:longtitude,
-            },
-            store.contactInfo.longtitude=longtitude;
-            store.workingHours=workingHours;
-            store.logo=logo;
-            store.save().then(store_update=>{
-                return response.status(200).json({
-                    message:'store updated',
-                    store:store_update
-                })
+            User.findOne({mobile: mobile})   
+            .then(account=>{
+                if(account &&request.account.mobile!=mobile){
+                    return response.status(200).json({
+                        message:'This mobile is linked to another user'
+                    })
+                }else{
+                    store.storeName=storeName;
+                    store.isTakeway=isTakeway;
+                    store.isDelivery=isDelivery;
+                    store.storeDescription=storeDescription;
+                    store.contactInfo = {
+                        email:email,
+                        mobile:mobile,
+                        phone:phone,
+                        city:city,address:address,
+                        latitude:latitude,longtitude:longtitude,
+                    },
+                    store.contactInfo.longtitude=longtitude;
+                    store.workingHours=workingHours;
+                    store.logo=logo;
+                    store.save().then(store_update=>{
+                        return response.status(200).json({
+                            message:'store updated',
+                            store:store_update
+                        })
+                    })
+                }
             })
         }
     })
