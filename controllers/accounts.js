@@ -9,6 +9,7 @@ const isAuth = require('./isAuth');
 const User =require('../models/user'); 
 const Store = require('../models/store');
 const Category = require('../models/category');
+const Product = require('../models/product');
 
 //getting list of accounts
 router.get('/AllAccounts', async(request,response) => {      
@@ -227,12 +228,27 @@ router.post('/updatePassword', async(request,response)=>{
 
 router.get('/getUserData', isAuth, async(request,response)=>{
     const accId= request.account._id;
-    //פרטי המשתמש וגם פרטי החנות ששייכת אליו
+   
     const store = await Store.findOne({associateId:accId}).populate('associateId');
-    //const categories = await Category.findOne({storeId:store._id});
-    //const products= await Product.findOne({storeId:store._id});
+    const categories = await Category.find({storeId:store._id});
+    const products= await Product.find({storeId:store._id});
+
+    let allProducts =[];
+
+    categories.forEach(category => {    //run all categories in  store
+        let _products = [];
+        products.forEach(product => {    //run on all products in store
+            if(category._id.equals(product.categoryId)){    //if product is associated catgory
+                _products.push(product)                       //push to arry products
+            }
+        })       
+        allProducts.push({category:category, products:products})    //arry object
+                                                                    //category:product
+    })
+
     return response.status(200).json({
-        data:store
+        data:store,
+        allProducts:allProducts
     })
 
     
